@@ -163,9 +163,10 @@ spec:
         - name: sys-fs
           mountPath: /sys/module
         {{- end }}
-        {{- if and .Values.driver.enabled (and (eq .Values.driver.kind "ebpf") (contains "falco-no-driver" .Values.image.repository)) }}
-        - name: debugfs
-          mountPath: /sys/kernel/debug
+        {{- if eq (include "falco.debugfs.enabled" .) "true" }}
+        - mountPath: /sys/kernel/debug
+          name: debugfs
+          readOnly: true
         {{- end }}
         - mountPath: /etc/falco/falco.yaml
           name: falco-yaml
@@ -251,7 +252,7 @@ spec:
       hostPath:
         path: /sys/module
     {{- end }}
-    {{- if and .Values.driver.enabled (and (eq .Values.driver.kind "ebpf") (contains "falco-no-driver" .Values.image.repository)) }}
+    {{- if eq (include "falco.debugfs.enabled" .) "true" }}
     - name: debugfs
       hostPath:
         path: /sys/kernel/debug

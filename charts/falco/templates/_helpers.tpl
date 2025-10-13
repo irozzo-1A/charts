@@ -422,6 +422,25 @@ true
 {{- end -}}
 
 {{/*
+Return "true" if we should mount /sys/kernel/debug (debugfs) in the Falco pod.
+It considers driver.enabled, driver.kind and the per-driver debugfs opt-outs in values.yaml.
+*/}}
+{{- define "falco.debugfs.enabled" -}}
+{{- if .Values.driver.enabled -}}
+  {{- if eq .Values.driver.kind "ebpf" -}}
+    {{- if .Values.driver.ebpf.debugfs }}true{{- else }}false{{- end -}}
+  {{- else if or (eq .Values.driver.kind "modern_ebpf") (eq .Values.driver.kind "modern-bpf") -}}
+    {{- if .Values.driver.modernEbpf.debugfs }}true{{- else }}false{{- end -}}
+  {{- else if eq .Values.driver.kind "auto" -}}
+    {{- if or .Values.driver.ebpf.debugfs .Values.driver.modernEbpf.debugfs }}true{{- else }}false{{- end -}}
+  {{- end -}}
+{{- else -}}
+false
+{{- end -}}
+{{- end -}}
+
+
+{{/*
 Based on the user input it populates the metrics configuration in the falco config map.
 */}}
 {{- define "falco.metricsConfiguration" -}}
